@@ -1,31 +1,48 @@
 pipeline {
     agent any
+
     environment {
-        DASTARDLY_TARGET_URL = 'https://eaist.mos.ru'
+        // Используем рекомендованные имена переменных
+        BURP_START_URL = 'https://eaist.mos.ru'
         IMAGE_WITH_TAG = 'public.ecr.aws/portswigger/dastardly:latest'
-        JUNIT_TEST_RESULTS_FILE = 'dastardly-report.xml'
+        BURP_REPORT_FILE_PATH = 'dastardly-report.xml'
     }
+
     stages {
-        stage ("Docker Pull Dastardly from Burp Suite container image") {
+        stage("Setup Environment") {
             steps {
-                sh 'docker pull ${IMAGE_WITH_TAG}'
+                cleanWs() // Очищаем рабочую область перед каждым запуском
             }
         }
-        stage ("Docker run Dastardly from Burp Suite Scan") {
+
+        stage("Pull Docker Image") {
             steps {
-                cleanWs()
-                sh '''
-                    docker run --rm --user $(id -u) -v ${WORKSPACE}:${WORKSPACE}:rw \
-                    -e DASTARDLY_TARGET_URL=${DASTARDLY_TARGET_URL} \
-                    -e DASTARDLY_OUTPUT_FILE=${WORKSPACE}/${JUNIT_TEST_RESULTS_FILE} \
+                sh "docker pull ${IMAGE_WITH_TAG}" // Загружаем последнюю версию образа Docker
+            }
+        }
+
+        stage("Run Dastardly Scan") {
+            steps {
+                script {
+                    // Запускаем Docker контейнер для сканирования
+                    def user = sh(script: 'id -u', returnStdout: true).trim()
+                    def command = """
+                    docker run --rm --user ${user} -v ${WORKSPACE}:${WORKSPACE}:rw \\
+                    -e BURP_START_URL=${BURP_START_URL} \\
+                    -e BURP_REPORT_FILE_PATH=${WORKSPACE}/${BURP_REPORT_FILE_PATH} \\
                     ${IMAGE_WITH_TAG}
-                '''
+                    """
+                    sh command
+                }
             }
         }
     }
+
     post {
         always {
-            junit testResults: "${JUNIT_TEST_RESULTS_FILE}", skipPublishingChecks: true
+            // Публикуем результаты и архивируем отчет
+            junit testResults: "${WORKSPACE}/${BURP_REPORT_FILE_PATH}", allowEmptyResults: true
+            archiveArtifacts artifacts: "${BURP_REPORT_FILE_PATH}"
         }
     }
 }
