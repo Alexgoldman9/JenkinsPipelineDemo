@@ -15,7 +15,7 @@ pipeline {
       steps {
         cleanWs()
         sh """
-          docker run --rm --user $(id -u) -v ${WORKSPACE}:${WORKSPACE}:rw \
+          docker run --rm --user $$(id -u) -v ${WORKSPACE}:${WORKSPACE}:rw \
           -e BURP_START_URL=${BURP_START_URL} \
           -e BURP_REPORT_FILE_PATH=${WORKSPACE}/${JUNIT_TEST_RESULTS_FILE} \
           ${IMAGE_WITH_TAG}
