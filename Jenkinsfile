@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         // Используем рекомендованные имена переменных
-        BURP_START_URL = 'https://eaist.mos.ru'
+        BURP_START_URL = 'http://eaist-demo2.proitr.ru/login.html'
         IMAGE_WITH_TAG = 'public.ecr.aws/portswigger/dastardly:latest'
         BURP_REPORT_FILE_PATH = 'dastardly-report.xml'
     }
