@@ -3,7 +3,7 @@
 pipeline {
     agent any
     envieronment {
-      DASTARDLY_TARGET_URL='https://eaist.mos.ru'
+      DASTARDLY_TARGET_URL='https://ginandjuice.shop/'
       IMAGE_WITH_TAG='public.ecr.aws/portswigger/dastardly:latest'
       JUNIT_TEST_RESULTS_FILE='dastardly-report.xml'
     }
@@ -20,7 +20,7 @@ pipeline {
                     docker run --user $(id -u) -v ${WORKSPACE}:${WORKSPACE}:rw \
                     -e DASTARDLY_TARGET_URL=${DASTARDLY_TARGET_URL} \
                     -e DASTARDLY_OUTPUT_FILE=${WORKSPACE}/${JUNIT_TEST_RESULTS_FILE} \
-                    public.ecr.aws/portswigger/dastardly:latest
+                    ${IMAGE_WITH_TAG}
                 '''
             }
         }
